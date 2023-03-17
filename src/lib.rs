@@ -88,6 +88,7 @@ pub fn encode_into(mut num: u64, mut target: impl FnMut(u8)) -> Result<u8,&'stat
 /// Decode a binary stream into a u64 value using the appropriate dynamic number type.
 /// Returns none if the first read byte doesn't contains a valid tag
 pub fn decode_binary_stream(input: &mut impl Iterator<Item = u8>) -> Option<u64> {
+    //FIX SHOULD RETURN ERR INSTEAD OF PANIC
     let mut first = input.next().unwrap();
 
     let typ = DynumType::as_list().into_iter().find(|d| {
@@ -97,9 +98,10 @@ pub fn decode_binary_stream(input: &mut impl Iterator<Item = u8>) -> Option<u64>
     })?;
     let typdata = typ.get_typeinfo();
 
-    let mut buff = [0u8; std::mem::size_of::<usize>()];
+    let mut buff = [0u8; std::mem::size_of::<u64>()];
     buff[0] = first;
     for i in 0..typdata.bytecapacity - 1 {
+        //FIX HERE TOO
         buff[(i + 1) as usize] = input.next().unwrap();
     }
 
