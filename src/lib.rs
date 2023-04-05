@@ -1,3 +1,6 @@
+use std::borrow::Borrow;
+
+
 /// Informations about the supported types
 struct DynumTypeInfo {
     tagsize: u8,
@@ -87,9 +90,9 @@ pub fn encode_into(mut num: u64, mut target: impl FnMut(u8)) -> Result<u8,&'stat
 
 /// Decode a binary stream into a u64 value using the appropriate dynamic number type.
 /// Returns none if the first read byte doesn't contains a valid tag
-pub fn decode_binary_stream(input: &mut impl Iterator<Item = u8>) -> Option<u64> {
+pub fn decode_binary_stream<T: Borrow<u8>>(input: &mut impl Iterator<Item = T>) -> Option<u64> {
     //FIX SHOULD RETURN ERR INSTEAD OF PANIC
-    let mut first = input.next().unwrap();
+    let first: u8 = *input.next().unwrap().borrow();
 
     let typ = DynumType::as_list().into_iter().find(|d| {
         let info = d.get_typeinfo();
@@ -102,7 +105,7 @@ pub fn decode_binary_stream(input: &mut impl Iterator<Item = u8>) -> Option<u64>
     buff[0] = first;
     for i in 0..typdata.bytecapacity - 1 {
         //FIX HERE TOO
-        buff[(i + 1) as usize] = input.next().unwrap();
+        buff[(i + 1) as usize] = *input.next().unwrap().borrow();
     }
 
     //Remove tagdata and decode
